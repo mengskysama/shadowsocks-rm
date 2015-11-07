@@ -62,6 +62,7 @@
 from __future__ import absolute_import, division, print_function, \
     with_statement
 
+import sys
 import socket
 import logging
 import struct
@@ -211,9 +212,16 @@ class UDPRelay(object):
             return
         try:
             client.sendto(data, (server_addr, server_port))
-        except IOError as e:
-            err = eventloop.errno_from_exception(e)
-            if err in (errno.EINPROGRESS, errno.EAGAIN):
+        except socket.error as err:
+            error_no = err.args[0]
+            if sys.platform == "win32":
+                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                    pass
+                else:
+                    shell.print_exception(e)
+            elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                            errno.EWOULDBLOCK):
                 pass
             else:
                 shell.print_exception(e)

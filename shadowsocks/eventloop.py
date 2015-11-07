@@ -18,6 +18,7 @@
 # from ssloop
 # https://github.com/clowwindy/ssloop
 
+
 from __future__ import absolute_import, division, print_function, \
     with_statement
 
@@ -27,6 +28,12 @@ import socket
 import select
 import errno
 import logging
+
+try:
+    import pyuv
+except:
+    pass
+
 from collections import defaultdict
 
 from shadowsocks import shell
@@ -142,7 +149,104 @@ class SelectLoop(object):
         pass
 
 
-class EventLoop(object):
+class UvEventLoop(object):
+    def __init__(self):
+        self._periodic_callbacks = []
+        self.loop = pyuv.Loop.default_loop()
+        self._fd2wahtch = {}
+        self._wahtch2handler = {}
+        self._fd2sock = {}
+
+    def add(self, f, mode, handler):
+
+        def uvcallback(watcher, revents, error):
+            event = 0
+            if error:
+                event = POLL_ERR
+            else:
+                if revents & pyuv.UV_READABLE:
+                    event |= POLL_IN
+                if revents & pyuv.UV_WRITABLE:
+                    event |= POLL_OUT
+            handler = self._wahtch2handler[watcher]
+            try:
+                fd = watcher.fileno()
+                handler.handle_event(self._fd2sock[fd], fd, event)
+            except (OSError, IOError) as e:
+                shell.print_exception(e)
+
+        fd = f.fileno()
+        uvmode = pyuv.UV_READABLE#POLL_ERR
+        if mode & POLL_IN:
+            uvmode |= pyuv.UV_READABLE
+        if mode & POLL_OUT:
+            uvmode |= pyuv.UV_WRITABLE
+        watcher = pyuv.Poll(self.loop, fd)
+        watcher.start(uvmode, uvcallback)
+        self._fd2wahtch[fd] = watcher
+        self._wahtch2handler[watcher] = handler
+        self._fd2sock[fd] = f
+
+    def remove(self, f):
+        fd = f.fileno()
+        watcher = self._fd2wahtch[fd]
+        watcher.stop()
+        del self._fd2wahtch[fd]
+        del self._wahtch2handler[watcher]
+        del self._fd2sock[fd]
+
+    def add_periodic(self, callback):
+        self._periodic_callbacks.append(callback)
+
+    def remove_periodic(self, callback):
+        self._periodic_callbacks.remove(callback)
+
+    def modify(self, f, mode):
+
+        def uvcallback(watcher, revents, error):
+            event = 0
+            if error:
+                event = POLL_ERR
+            else:
+                if revents & pyuv.UV_READABLE:
+                    event |= POLL_IN
+                if revents & pyuv.UV_WRITABLE:
+                    event |= POLL_OUT
+            handler = self._wahtch2handler[watcher]
+            try:
+                fd = watcher.fileno()
+                handler.handle_event(self._fd2sock[fd], fd, event)
+            except (OSError, IOError) as e:
+                shell.print_exception(e)
+
+        fd = f.fileno()
+        uvmode = pyuv.UV_READABLE#POLL_ERR
+        if mode & POLL_IN:
+            uvmode |= pyuv.UV_READABLE
+        if mode & POLL_OUT:
+            uvmode |= pyuv.UV_WRITABLE
+        watcher = self._fd2wahtch[fd]
+        watcher.start(uvmode, uvcallback)
+
+    def stop(self):
+        self.loop.stop()
+
+    def run(self):
+
+        def _periodic(timer):
+            for callback in self._periodic_callbacks:
+                callback()
+            timer.start(_periodic, 10, 0)
+
+        timer = pyuv.Timer(self.loop)
+        timer.start(_periodic, 10, 0)
+        self.loop.run()
+
+    def __del__(self):
+        pass
+
+
+class PyEventLoop(object):
     def __init__(self):
         if hasattr(select, 'epoll'):
             self._impl = select.epoll()
@@ -224,6 +328,17 @@ class EventLoop(object):
 
     def __del__(self):
         self._impl.close()
+
+try:
+    import pyuv
+    EventLoop = UvEventLoop
+    logging.warn('using EventLoop as UvEventLoop')
+except:
+    EventLoop = PyEventLoop
+    if sys.platform == "win32":
+        logging.warn('using EventLoop as PyEventLoop. try install pyuv https://pypi.python.org/pypi/pyuv')
+    else:
+        logging.warn('using EventLoop as PyEventLoop')
 
 
 # from tornado

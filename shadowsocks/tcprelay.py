@@ -18,6 +18,7 @@
 from __future__ import absolute_import, division, print_function, \
     with_statement
 
+import sys
 import time
 import socket
 import errno
@@ -195,9 +196,13 @@ class TCPRelayHandler(object):
             if s < l:
                 data = data[s:]
                 uncomplete = True
-        except (OSError, IOError) as e:
-            error_no = eventloop.errno_from_exception(e)
-            if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+        except socket.error as err:
+            error_no = err.args[0]
+            if sys.platform == "win32":
+                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                    uncomplete = True
+            elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
                             errno.EWOULDBLOCK):
                 uncomplete = True
             else:
@@ -393,9 +398,14 @@ class TCPRelayHandler(object):
         data = None
         try:
             data = self._local_sock.recv(BUF_SIZE)
-        except (OSError, IOError) as e:
-            if eventloop.errno_from_exception(e) in \
-                    (errno.ETIMEDOUT, errno.EAGAIN, errno.EWOULDBLOCK):
+        except socket.error as err:
+            error_no = err.args[0]
+            if sys.platform == "win32":
+                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                    return
+            elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                            errno.EWOULDBLOCK):
                 return
         if not data:
             self.destroy()
@@ -427,9 +437,14 @@ class TCPRelayHandler(object):
         try:
             data = self._remote_sock.recv(BUF_SIZE)
 
-        except (OSError, IOError) as e:
-            if eventloop.errno_from_exception(e) in \
-                    (errno.ETIMEDOUT, errno.EAGAIN, errno.EWOULDBLOCK):
+        except socket.error as err:
+            error_no = err.args[0]
+            if sys.platform == "win32":
+                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                    return
+            elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                            errno.EWOULDBLOCK):
                 return
         if not data:
             self.destroy()
@@ -675,9 +690,13 @@ class TCPRelay(object):
                 TCPRelayHandler(self, self._fd_to_handlers,
                                 self._eventloop, conn[0], self._config,
                                 self._dns_resolver, self._is_local)
-            except (OSError, IOError) as e:
-                error_no = eventloop.errno_from_exception(e)
-                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+            except socket.error as err:
+                error_no = err.args[0]
+                if sys.platform == "win32":
+                    if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                    errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                        return
+                elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
                                 errno.EWOULDBLOCK):
                     return
                 else:
