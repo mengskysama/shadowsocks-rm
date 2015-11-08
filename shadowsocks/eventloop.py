@@ -157,8 +157,8 @@ class UvEventLoop(object):
         self._wahtch2handler = {}
         self._fd2sock = {}
 
-    def add(self, f, mode, handler):
-
+    def _update(self, f, mode, handler=None):
+        
         def uvcallback(watcher, revents, error):
             event = 0
             if error:
@@ -174,18 +174,28 @@ class UvEventLoop(object):
                 handler.handle_event(self._fd2sock[fd], fd, event)
             except (OSError, IOError) as e:
                 shell.print_exception(e)
-
+        
         fd = f.fileno()
-        uvmode = pyuv.UV_READABLE#POLL_ERR
+        uvmode = 0
         if mode & POLL_IN:
             uvmode |= pyuv.UV_READABLE
         if mode & POLL_OUT:
             uvmode |= pyuv.UV_WRITABLE
-        watcher = pyuv.Poll(self.loop, fd)
-        watcher.start(uvmode, uvcallback)
-        self._fd2wahtch[fd] = watcher
-        self._wahtch2handler[watcher] = handler
-        self._fd2sock[fd] = f
+        if handler is None:
+            watcher = self._fd2wahtch[fd]
+            watcher.start(uvmode, uvcallback)
+        else:
+            watcher = pyuv.Poll(self.loop, fd)
+            watcher.start(uvmode, uvcallback)
+            self._fd2wahtch[fd] = watcher
+            self._wahtch2handler[watcher] = handler
+            self._fd2sock[fd] = f
+
+    def add(self, f, mode, handler):
+        self._update(f, mode, handler)
+
+    def modify(self, f, mode):
+        self._update(f, mode, None)
 
     def remove(self, f):
         fd = f.fileno()
@@ -201,45 +211,18 @@ class UvEventLoop(object):
     def remove_periodic(self, callback):
         self._periodic_callbacks.remove(callback)
 
-    def modify(self, f, mode):
-
-        def uvcallback(watcher, revents, error):
-            event = 0
-            if error:
-                event = POLL_ERR
-            else:
-                if revents & pyuv.UV_READABLE:
-                    event |= POLL_IN
-                if revents & pyuv.UV_WRITABLE:
-                    event |= POLL_OUT
-            handler = self._wahtch2handler[watcher]
-            try:
-                fd = watcher.fileno()
-                handler.handle_event(self._fd2sock[fd], fd, event)
-            except (OSError, IOError) as e:
-                shell.print_exception(e)
-
-        fd = f.fileno()
-        uvmode = pyuv.UV_READABLE#POLL_ERR
-        if mode & POLL_IN:
-            uvmode |= pyuv.UV_READABLE
-        if mode & POLL_OUT:
-            uvmode |= pyuv.UV_WRITABLE
-        watcher = self._fd2wahtch[fd]
-        watcher.start(uvmode, uvcallback)
-
     def stop(self):
         self.loop.stop()
 
     def run(self):
-
+        
         def _periodic(timer):
             for callback in self._periodic_callbacks:
                 callback()
-            timer.start(_periodic, 10, 0)
-
+            timer.start(_periodic, TIMEOUT_PRECISION, 0)
+        
         timer = pyuv.Timer(self.loop)
-        timer.start(_periodic, 10, 0)
+        timer.start(_periodic, TIMEOUT_PRECISION, 0)
         self.loop.run()
 
     def __del__(self):
