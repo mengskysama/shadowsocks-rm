@@ -196,8 +196,8 @@ class TCPRelayHandler(object):
             if s < l:
                 data = data[s:]
                 uncomplete = True
-        except socket.error as err:
-            error_no = err.args[0]
+        except (socket.error, OSError, IOError) as e:
+            error_no = eventloop.errno_from_exception(e)
             if sys.platform == "win32":
                 if error_no in (errno.EAGAIN, errno.EINPROGRESS,
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
@@ -251,7 +251,7 @@ class TCPRelayHandler(object):
                 else:
                     self._data_to_write_to_remote = []
                 self._update_stream(STREAM_UP, WAIT_STATUS_READWRITING)
-            except (OSError, IOError) as e:
+            except (socket.error, OSError, IOError) as e:
                 if eventloop.errno_from_exception(e) == errno.EINPROGRESS:
                     # in this case data is not sent at all
                     self._update_stream(STREAM_UP, WAIT_STATUS_READWRITING)
@@ -372,10 +372,10 @@ class TCPRelayHandler(object):
                                                                  remote_port)
                         try:
                             remote_sock.connect((remote_addr, remote_port))
-                        except (OSError, IOError) as e:
-                            if eventloop.errno_from_exception(e) == \
-                                    errno.EINPROGRESS:
-                                pass
+                         except (socket.error, OSError, IOError) as e:
+                             if eventloop.errno_from_exception(e) == \
+                                     errno.EINPROGRESS:
+                                 pass
                         self._loop.add(remote_sock,
                                        eventloop.POLL_ERR | eventloop.POLL_OUT,
                                        self._server)
@@ -398,8 +398,8 @@ class TCPRelayHandler(object):
         data = None
         try:
             data = self._local_sock.recv(BUF_SIZE)
-        except socket.error as err:
-            error_no = err.args[0]
+        except (socket.error, OSError, IOError) as e:
+            error_no = eventloop.errno_from_exception(e)
             if sys.platform == "win32":
                 if error_no in (errno.EAGAIN, errno.EINPROGRESS,
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):

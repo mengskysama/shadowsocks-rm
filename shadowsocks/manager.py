@@ -191,7 +191,11 @@ class Manager(object):
                 self._control_socket.sendto(data, self._control_client_addr)
             except (socket.error, OSError, IOError) as e:
                 error_no = eventloop.errno_from_exception(e)
-                if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                if sys.platform == "win32":
+                    if error_no in (errno.EAGAIN, errno.EINPROGRESS,
+                                    errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
+                        return
+                elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
                                 errno.EWOULDBLOCK):
                     return
                 else:
