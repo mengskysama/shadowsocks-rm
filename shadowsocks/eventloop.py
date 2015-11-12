@@ -28,6 +28,7 @@ import socket
 import select
 import errno
 import logging
+import sys
 
 try:
     import pyuv
