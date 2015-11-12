@@ -9,6 +9,7 @@ import socket
 import config
 import json
 
+
 class DbTransfer(object):
 
     instance = None
@@ -23,19 +24,14 @@ class DbTransfer(object):
         return DbTransfer.instance
 
     @staticmethod
-    def send_command(cmd, retry = 3):
-        while True:
-            try:
-                cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                cli.settimeout(2)
-                cli.sendto(cmd, ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
-                data, addr = cli.recvfrom(1500)
-                cli.close()
-                return data
-            except:
-                retry -= 1
-                if retry == 0:
-                    raise
+    def send_command(cmd):
+        cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        cli.settimeout(2)
+        cli.sendto(cmd, ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
+        data, addr = cli.recvfrom(1500)
+        cli.close()
+        return data
+
 
     @staticmethod
     def get_servers_transfer():
@@ -124,7 +120,7 @@ class DbTransfer(object):
     def thread_db():
         import socket
         import time
-        timeout = 60
+        timeout = 30
         socket.setdefaulttimeout(timeout)
         while True:
             logging.warn('db loop')
