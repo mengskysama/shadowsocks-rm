@@ -212,8 +212,8 @@ class UDPRelay(object):
             return
         try:
             client.sendto(data, (server_addr, server_port))
-        except socket.error as err:
-            error_no = err.args[0]
+        except (socket.error, OSError, IOError) as e:
+            error_no = eventloop.errno_from_exception(e)
             if sys.platform == "win32":
                 if error_no in (errno.EAGAIN, errno.EINPROGRESS,
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):

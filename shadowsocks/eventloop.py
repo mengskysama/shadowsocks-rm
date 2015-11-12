@@ -312,16 +312,15 @@ class PyEventLoop(object):
     def __del__(self):
         self._impl.close()
 
-try:
-    import pyuv
-    EventLoop = UvEventLoop
-    logging.warn('using EventLoop as UvEventLoop')
-except:
-    EventLoop = PyEventLoop
-    if sys.platform == "win32":
+
+EventLoop = PyEventLoop
+if sys.platform == "win32":
+    try:
+        import pyuv
+        EventLoop = UvEventLoop
+        logging.warn('using EventLoop as UvEventLoop')
+    except:
         logging.warn('using EventLoop as PyEventLoop. try install pyuv https://pypi.python.org/pypi/pyuv')
-    else:
-        logging.warn('using EventLoop as PyEventLoop')
 
 
 # from tornado
