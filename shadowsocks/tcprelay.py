@@ -372,10 +372,10 @@ class TCPRelayHandler(object):
                                                                  remote_port)
                         try:
                             remote_sock.connect((remote_addr, remote_port))
-                         except (socket.error, OSError, IOError) as e:
-                             if eventloop.errno_from_exception(e) == \
+                        except (socket.error, OSError, IOError) as e:
+                            if eventloop.errno_from_exception(e) == \
                                      errno.EINPROGRESS:
-                                 pass
+                                pass
                         self._loop.add(remote_sock,
                                        eventloop.POLL_ERR | eventloop.POLL_OUT,
                                        self._server)
