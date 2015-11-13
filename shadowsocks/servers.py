@@ -40,7 +40,7 @@ def main():
         'local_port': 1081,
         'port_password': {
         },
-        'method': 'rc4-md5',
+        'method': '%s' % config.SS_METHOD,
         'manager_address': '%s:%s' % (config.MANAGE_BIND_IP, config.MANAGE_PORT),
         'timeout': 185, # some protocol keepalive packet 3 min Eg bt
         'fast_open': False,
