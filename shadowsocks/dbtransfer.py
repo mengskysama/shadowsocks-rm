@@ -25,13 +25,16 @@ class DbTransfer(object):
 
     @staticmethod
     def send_command(cmd):
-        cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        cli.settimeout(2)
-        cli.sendto(cmd, ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
-        data, addr = cli.recvfrom(1500)
-        cli.close()
+        data = ''
+        try:
+            cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            cli.settimeout(1)
+            cli.sendto(cmd, ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
+            data, addr = cli.recvfrom(1500)
+            cli.close()
+        except:
+            logging.warn('send_command response')
         return data
-
 
     @staticmethod
     def get_servers_transfer():
