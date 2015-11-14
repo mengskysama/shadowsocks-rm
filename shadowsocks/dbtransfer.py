@@ -108,7 +108,7 @@ class DbTransfer(object):
                 elif row[1] + row[2] >= row[3]:
                     #stop out bandwidth user
                     logging.info('db stop server at port [%s] reason: out bandwidth' % (row[0]))
-                    SDbTransfer.send_command('remove: {"server_port":%s}' % row[0])
+                    DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
                 if server['password'] != row[4]:
                     #password changed
                     logging.info('db stop server at port [%s] reason: password changed' % (row[0]))
