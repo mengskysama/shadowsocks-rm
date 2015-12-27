@@ -700,7 +700,7 @@ class TCPRelay(object):
                                   errno.EWOULDBLOCK):
                     return
                 else:
-                    shell.print_exception(e)
+                    shell.print_exception(err)
                     if self._config['verbose']:
                         traceback.print_exc()
         else:
