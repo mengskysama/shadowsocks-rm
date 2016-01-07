@@ -23,6 +23,8 @@ import config
 import signal
 import time
 
+logging.basicConfig(filename=config['log-file'],level=logging.INFO)
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
     asyncdns, manager
@@ -44,7 +46,7 @@ def main():
         'manager_address': '%s:%s' % (config.MANAGE_BIND_IP, config.MANAGE_PORT),
         'timeout': 185, # some protocol keepalive packet 3 min Eg bt
         'fast_open': False,
-        'verbose': 2
+        'verbose': 5
     }
     t = thread.start_new_thread(manager.run, (configer,))
     time.sleep(1)
