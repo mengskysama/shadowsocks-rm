@@ -203,7 +203,7 @@ class TCPRelayHandler(object):
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
                     uncomplete = True
             elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
-                            errno.EWOULDBLOCK):
+                              errno.EWOULDBLOCK):
                 uncomplete = True
             else:
                 shell.print_exception(e)
@@ -374,7 +374,7 @@ class TCPRelayHandler(object):
                             remote_sock.connect((remote_addr, remote_port))
                         except (socket.error, OSError, IOError) as e:
                             if eventloop.errno_from_exception(e) == \
-                                     errno.EINPROGRESS:
+                                    errno.EINPROGRESS:
                                 pass
                         self._loop.add(remote_sock,
                                        eventloop.POLL_ERR | eventloop.POLL_OUT,
@@ -405,7 +405,7 @@ class TCPRelayHandler(object):
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
                     return
             elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
-                            errno.EWOULDBLOCK):
+                              errno.EWOULDBLOCK):
                 return
         if not data:
             self.destroy()
@@ -444,7 +444,7 @@ class TCPRelayHandler(object):
                                 errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
                     return
             elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
-                            errno.EWOULDBLOCK):
+                              errno.EWOULDBLOCK):
                 return
         if not data:
             self.destroy()
@@ -697,10 +697,10 @@ class TCPRelay(object):
                                     errno.EWOULDBLOCK, errno.WSAEWOULDBLOCK):
                         return
                 elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
-                                errno.EWOULDBLOCK):
+                                  errno.EWOULDBLOCK):
                     return
                 else:
-                    shell.print_exception(e)
+                    shell.print_exception(err)
                     if self._config['verbose']:
                         traceback.print_exc()
         else:
