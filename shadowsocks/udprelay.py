@@ -221,7 +221,7 @@ class UDPRelay(object):
                 else:
                     shell.print_exception(e)
             elif error_no in (errno.EAGAIN, errno.EINPROGRESS,
-                            errno.EWOULDBLOCK):
+                              errno.EWOULDBLOCK):
                 pass
             else:
                 shell.print_exception(e)
