@@ -1,3 +1,6 @@
+import logging
+
+
 #Config
 MYSQL_HOST = 'mengsky.net'
 MYSQL_PORT = 3306
@@ -16,5 +19,9 @@ MANAGE_PORT = 23333
 #if you want bind all of if only '4.4.4.4'
 SS_BIND_IP = '0.0.0.0'
 SS_METHOD = 'rc4-md5'
-logfile = '/var/log/shadowsocks.log'
+
+#
+LOG_ENABLE = False
+LOG_LEVEL = logging.WARNING
+LOG_FILE = './shadowsocks.log'
 

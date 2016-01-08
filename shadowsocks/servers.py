@@ -23,7 +23,8 @@ import config
 import signal
 import time
 
-logging.basicConfig(filename=config.logfile,level=logging.INFO)
+if config.LOG_ENABLE:
+    logging.basicConfig(filename=config.LOG_FILE,level=config.LOG_LEVEL)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
