@@ -1,4 +1,4 @@
-import logging,os
+import logging
 
 
 #Config
@@ -21,8 +21,7 @@ SS_BIND_IP = '0.0.0.0'
 SS_METHOD = 'rc4-md5'
 
 #
-#
-LOG_ENABLE = True
-#LOG_LEVEL = logging.WARNING
-LOG_LEVEL = logging.DEBUG
-LOG_FILE = '/var/log/shadowsocks.log'
+LOG_ENABLE = False
+LOG_LEVEL = logging.WARNING
+LOG_FILE = './shadowsocks.log'
+
