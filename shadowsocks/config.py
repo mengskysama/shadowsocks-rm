@@ -1,5 +1,4 @@
-import logging,os
-
+import logging
 
 #Config
 MYSQL_HOST = 'mengsky.net'

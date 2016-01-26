@@ -47,7 +47,7 @@ def main():
         'manager_address': '%s:%s' % (config.MANAGE_BIND_IP, config.MANAGE_PORT),
         'timeout': 185, # some protocol keepalive packet 3 min Eg bt
         'fast_open': False,
-        'verbose': 5
+        'verbose': 1
     }
     t = thread.start_new_thread(manager.run, (configer,))
     time.sleep(1)
