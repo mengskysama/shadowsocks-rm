@@ -32,6 +32,8 @@ class DbTransfer(object):
             cli.sendto(cmd, ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
             data, addr = cli.recvfrom(1500)
             cli.close()
+            # TODO: bad way solve timed out
+            time.sleep(0.05)
         except:
             logging.warn('send_command response')
         return data
