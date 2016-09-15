@@ -89,27 +89,37 @@ class DbTransfer(object):
             if config.PANEL_VERSION == 'V3':
                 i = 0
                 for id in dt_transfer.keys():
+                    string = ' WHERE `port` = %s' % id
+                    conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
+                                           passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+                    cur = conn.cursor()
+                    cur.execute('SELECT id FROM %s%s '
+                                % (config.MYSQL_USER_TABLE, string))
+                    rows = []
+                    for r in cur.fetchall():
+                        rows.append(list(r))
+                    cur.close()
+                    conn.close()
+                    logging.info('port:%s ----> id:%s' % (id, rows[0][0]))
                     tran = str(dt_transfer[id])
                     data = {'d': tran, 'node_id': config.NODE_ID, 'u': '0'}
-                    url = config.API_URL + '/users/' + id + '/traffic?key=' + config.API_PASS
+                    url = config.API_URL + '/users/' + str(rows[0][0]) + '/traffic?key=' + config.API_PASS
                     data = urllib.urlencode(data)
-                    urllib2.Request(url, data)
                     req = urllib2.Request(url, data)
                     response = urllib2.urlopen(req)
                     the_page = response.read()
                     logging.info('%s - %s - %s' % (url, data, the_page))
-                    i = i + 1
-                #online user count
+                    i += 1
+                # online user count
                 data = {'count': i}
                 url = config.API_URL + '/nodes/' + config.NODE_ID + '/online_count?key=' + config.API_PASS
                 data = urllib.urlencode(data)
-                urllib2.Request(url, data)
                 req = urllib2.Request(url, data)
                 response = urllib2.urlopen(req)
                 the_page = response.read()
                 logging.info('%s - %s - %s' % (url, data, the_page))
 
-                #load info
+                # load info
                 url = config.API_URL + '/nodes/' + config.NODE_ID + '/info?key=' + config.API_PASS
                 f = open("/proc/loadavg")
                 load = f.read().split()
@@ -121,7 +131,6 @@ class DbTransfer(object):
                 f.close()
                 data = {'load': loadavg, 'uptime': uptime}
                 data = urllib.urlencode(data)
-                urllib2.Request(url, data)
                 req = urllib2.Request(url, data)
                 response = urllib2.urlopen(req)
                 the_page = response.read()
