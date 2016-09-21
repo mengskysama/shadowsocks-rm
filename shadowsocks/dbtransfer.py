@@ -126,8 +126,8 @@ class DbTransfer(object):
                 f.close()
                 loadavg = load[0]+' '+load[1]+' '+load[2]+' '+load[3]+' '+load[4]
                 f = open("/proc/uptime")
-                time = f.read().split()
-                uptime = time[0]
+                t = f.read().split()
+                uptime = t[0]
                 f.close()
                 data = {'load': loadavg, 'uptime': uptime}
                 data = urllib.urlencode(data)
