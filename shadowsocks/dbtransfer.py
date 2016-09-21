@@ -59,6 +59,7 @@ class DbTransfer(object):
         dt_transfer = self.get_servers_transfer()
 
         if config.PANEL_VERSION == 'V2':
+            import time
             query_head = 'UPDATE user'
             query_sub_when = ''
             query_sub_when2 = ''
